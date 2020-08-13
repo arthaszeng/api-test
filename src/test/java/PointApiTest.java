@@ -1,4 +1,5 @@
 import io.restassured.response.Response;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import command.GetTokenCommand;
 import common.Role;
@@ -9,6 +10,7 @@ import utils.ResponseHelper;
 import java.io.IOException;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -33,5 +35,20 @@ public class PointApiTest extends BaseApiTest {
 
         assertEquals(200, response.getStatusCode());
         assertNotNull(tokenResponse.getToken());
+    }
+
+    //TODO: get token from bind account or get token
+    @Test
+    void should_get_account_roc_success() {
+        given()
+                .auth()
+                .none()
+                .header("Authorization", TOKEN)
+                .when()
+                .get(POINT_BASE_URL_MACAU + "/accounts/roc")
+                .then()
+                .statusCode(200)
+                .body("accountName", equalTo("ROC_MACAU"))
+                .body("address", equalTo("0x395E9294991086eDC9fce644197Ac244b30768F9"));
     }
 }
