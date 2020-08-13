@@ -1,4 +1,5 @@
-import org.testng.annotations.Test;
+
+import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -8,7 +9,7 @@ public class CrmApiTest extends BaseApiTest {
     private final static String CRM_BASE_URL_MANILA = "https://dev.manila.crm.blockchain.thoughtworks.cn";
 
     @Test
-    public void should_get_show_list_success() {
+    void should_get_show_list_success() {
         given()
                 .when()
                 .get(CRM_BASE_URL_MACAU + "/shows") // This will get the data from the given URL
