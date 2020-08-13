@@ -1,5 +1,4 @@
 import io.restassured.response.Response;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import command.GetTokenCommand;
 import common.Role;
@@ -14,7 +13,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class PointApiTest extends BaseApiTest {
+public class PointApiTest {
     private final static String POINT_BASE_URL_MACAU = "https://dev.macau.loyalty.blockchain.thoughtworks.cn";
     private final static String POINT_BASE_URL_MANILA = "https://dev.manila.loyalty.blockchain.thoughtworks.cn";
 
@@ -50,5 +49,40 @@ public class PointApiTest extends BaseApiTest {
                 .statusCode(200)
                 .body("accountName", equalTo("ROC_MACAU"))
                 .body("address", equalTo("0x395E9294991086eDC9fce644197Ac244b30768F9"));
+    }
+
+    @Test
+    void should_get_account_merchant_success() {
+        given()
+                .auth()
+                .none()
+                .header("Authorization", TOKEN)
+                .param("membershipId", "20000002")
+                .when()
+                .get(POINT_BASE_URL_MACAU + "/accounts/merchant")
+                .then()
+                .statusCode(200)
+                .body("accountName", equalTo("ffMacauPro"))
+                .body("accountId", equalTo("094bfbc0-d168-11ea-976b-99ba67a55bfc"))
+                .body("address", equalTo("0xfd90fEaaA706F95e8588b08ad6Ac72a1dA5cB748"));
+    }
+
+    @Test
+    void should_query_points_by_addresses_success() {
+        given()
+                .auth()
+                .none()
+                .header("Authorization", TOKEN)
+                .param("addresses", "0xfd90fEaaA706F95e8588b08ad6Ac72a1dA5cB748")
+                .param("addresses", "0xFb1B0AE44841B2Ae19199e03eC1B3874291b095c")
+                .when()
+                .get(POINT_BASE_URL_MACAU + "/points")
+                .then()
+                .statusCode(200)
+                .body("totalBalance", equalTo(100))
+                .body("[0].balance", equalTo(100))
+                .body("[0].address", equalTo("0xfd90fEaaA706F95e8588b08ad6Ac72a1dA5cB748"))
+                .body("[1].address", equalTo("0xfd90fEaaA706F95e8588b08ad6Ac72a1dA5cB748"))
+                .body("[1].balance", equalTo(0));
     }
 }

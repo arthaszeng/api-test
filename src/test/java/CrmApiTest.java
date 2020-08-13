@@ -4,9 +4,8 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
-public class CrmApiTest extends BaseApiTest {
+public class CrmApiTest {
     private final static String CRM_BASE_URL_MACAU = "https://dev.macau.crm.blockchain.thoughtworks.cn";
-    private final static String CRM_BASE_URL_MANILA = "https://dev.manila.crm.blockchain.thoughtworks.cn";
 
     @Test
     void should_get_show_list_success() {

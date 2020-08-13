@@ -11,9 +11,18 @@ public class ResourceHelper {
         return given().when().get(url);
     }
 
-    public static Response create(String url, String json) {
+    public static Response createWithoutToken(String url, String json) {
         return given()
                 .header("Content-Type", "application/json")
+                .when()
+                .body(json)
+                .post(url);
+    }
+
+    public static Response createWithToken(String url, String json, String token) {
+        return given()
+                .header("Content-Type", "application/json")
+                .header("Authorization", token)
                 .when()
                 .body(json)
                 .post(url);
