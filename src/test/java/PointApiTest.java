@@ -31,6 +31,7 @@ public class PointApiTest {
     private final static String POINT_BASE_URL_MANILA = "https://dev.manila.loyalty.blockchain.thoughtworks.cn";
 
     private final static String TOKEN = "eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE1OTcxMzYxMjMsIm1lbWJlcnNoaXBJZCI6InNteTIwMDA1Iiwicm9sZSI6Ik1FUkNIQU5UIn0.TrafIzHrLdJX-DKj4YNsGQh0NelCmOnFHf3FfV5zdbAINm09fe9OM4zutINEWSUWLOBc99nXcqPyvHQMRK-VOZmhHBIBvb5p7X_ld7mDWRvwndIgnuM-UgybitNh5NRCt4Y4XfqPze8HkQhh-z8dkYMJqlJcEv6tb1lNiNJHcevuo63o6Fhi99pLUA7J3nKi29dONy-t_mAmnkjvTg-VLrrrzmNQXfT0yN7aQxrdKk2kdbwCKjVUGD5I_SG6--K6bDPcRFj-vFM8vG0LPz6HlHcr_j33zSn1L1Ih9zArEeOEPwAEGjS_i9gg5YeEAHh96jtbc9uVeOUSY-t4q4JbmQ";
+    public static final String ROC_MACAU_ADDRESS_DEV = "0x395E9294991086eDC9fce644197Ac244b30768F9";
 
     @Test
     public void test_should_get_account_token_success() throws IOException {
@@ -61,7 +62,7 @@ public class PointApiTest {
                 .then()
                 .statusCode(200)
                 .body("accountName", equalTo("ROC_MACAU"))
-                .body("address", equalTo("0x395E9294991086eDC9fce644197Ac244b30768F9"));
+                .body("address", equalTo(ROC_MACAU_ADDRESS_DEV));
     }
 
     @Test
@@ -102,7 +103,20 @@ public class PointApiTest {
                 .body("accounts[1].address", equalTo("0xFb1B0AE44841B2Ae19199e03eC1B3874291b095c"));
     }
 
-    //TODO: key index generate
+    @Test
+    void should_query_points_by_issuer_success() {
+        given()
+                .auth()
+                .none()
+                .header("Authorization", TOKEN)
+                .param("address", ROC_MACAU_ADDRESS_DEV)
+                .when()
+                .get(POINT_BASE_URL_MACAU + "/points/issuers")
+                .then()
+                .statusCode(200)
+                .body("totalBalance", notNullValue());
+    }
+
     @Test
     void should_bind_customer_account_success() throws IOException {
 
@@ -170,5 +184,7 @@ public class PointApiTest {
                 .statusCode(200)
                 .body("balance", equalTo(100));
     }
+
+    //TODO: spend and redeem points signed data construction
 
 }
