@@ -4,7 +4,10 @@ import command.GetTokenCommand;
 import common.Role;
 import io.restassured.response.Response;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.codehaus.groovy.util.StringUtil;
 import org.junit.jupiter.api.Test;
+import org.testng.util.Strings;
 import response.TokenResponse;
 import response.UserResponse;
 import utils.AccountHelper;
@@ -13,7 +16,6 @@ import utils.ResponseHelper;
 
 import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
@@ -78,6 +80,8 @@ public class PointApiTest {
                 .body("address", equalTo("0xfd90fEaaA706F95e8588b08ad6Ac72a1dA5cB748"));
     }
 
+    //TODO: test case result are not stable
+    //TODO: async await?
     @Test
     void should_query_points_by_addresses_success() {
         given()
@@ -113,7 +117,6 @@ public class PointApiTest {
 
         String createUserCommand = RequestHelper.getJsonString(command);
 
-        //todo: anysc
         Response response = given()
                 .header("Content-Type", "application/json")
                 .body(createUserCommand)
@@ -146,6 +149,26 @@ public class PointApiTest {
 
         assertEquals(200, accountResponse.getStatusCode());
         assertNotNull(tokenResponse.getToken());
+    }
+
+    /*Test data
+     customer-smy10023 0x54a77c99D3A32e54d84D8d05E3c225EAc091da9E d365a878cd6ca408acd99207255c5d964b8b90e5f7d7d49e5ff0e6b8e3725ee8
+     merchant-smy20019 0xA8bA9a639c53839e51f597ca69f34640636d3dC0 27edd586020c3a3e23fe9e1febcc73cd86f6e85b6653ec6f7732a8df0e9fda09
+     */
+    @Test
+    void should_get_expiration_points_success() {
+        String address = "0x54a77c99D3A32e54d84D8d05E3c225EAc091da9E";
+        given()
+                .auth()
+                .none()
+                .header("Authorization", TOKEN)
+                .param("start", "201808")
+                .param("end", "201808")
+                .when()
+                .get(POINT_BASE_URL_MACAU + String.format("/points/%s/expiration", address))
+                .then()
+                .statusCode(200)
+                .body("balance", equalTo(100));
     }
 
 }
