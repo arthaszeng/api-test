@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import static io.restassured.RestAssured.given;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -89,11 +90,12 @@ public class PointApiTest {
                 .get(POINT_BASE_URL_MACAU + "/points")
                 .then()
                 .statusCode(200)
-                .body("totalBalance", equalTo(300));
-//                .body("[0].balance", equalTo(100))
-//                .body("[0].address", equalTo("0xfd90fEaaA706F95e8588b08ad6Ac72a1dA5cB748"))
-//                .body("[1].address", equalTo("0xfd90fEaaA706F95e8588b08ad6Ac72a1dA5cB748"))
-//                .body("[1].balance", equalTo(0));
+                .body("totalBalance", equalTo(300))
+                .body("accounts", notNullValue())
+                .body("accounts[0].balance", equalTo(300))
+                .body("accounts[0].address", equalTo("0xfd90fEaaA706F95e8588b08ad6Ac72a1dA5cB748"))
+                .body("accounts[1].balance", equalTo(0))
+                .body("accounts[1].address", equalTo("0xFb1B0AE44841B2Ae19199e03eC1B3874291b095c"));
     }
 
     //TODO: key index generate
