@@ -27,6 +27,8 @@ dependencies {
     testCompile "org.spockframework:spock-core:2.0-M3-groovy-3.0"
     testCompile "com.athaydes:spock-reports:1.7.1"
 
+    testImplementation 'org.awaitility:awaitility:4.0.3'
+
 
     compileOnly 'org.projectlombok:lombok:1.18.12'
 }
