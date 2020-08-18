@@ -134,6 +134,7 @@ public class PointApiTest {
                 .when()
                 .post(CRM_BASE_URL_MACAU + "/users");
 
+        assertEquals(201, response.getStatusCode());
         UserResponse user = (UserResponse) ResponseHelper.getResponseAsObject(response.asString(), UserResponse.class);
 
         await().atLeast(5, TimeUnit.SECONDS);
@@ -144,7 +145,7 @@ public class PointApiTest {
                 .keyIndex(1L)
                 .rootKey(AccountHelper.generateRandomRootKey())
                 .membershipId(user.getMembershipId())
-                .password(user.getPassword())
+                .password("0000")
                 .role(user.getRole())
                 .build();
 
