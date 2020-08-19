@@ -1,10 +1,24 @@
 import command.BindAccountCommand;
 import command.CreateUserCommand;
 import command.GetTokenCommand;
+import command.TransactionCommand;
 import common.Role;
 import io.restassured.response.Response;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.crypto.Credentials;
+import org.web3j.crypto.RawTransaction;
+import org.web3j.protocol.Web3j;
+import org.web3j.protocol.Web3jService;
+import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
+import org.web3j.protocol.http.HttpService;
+import org.web3j.protocol.ipc.UnixIpcService;
+import org.web3j.protocol.ipc.WindowsIpcService;
+import org.web3j.tx.RawTransactionManager;
+import org.web3j.utils.Async;
 import response.TokenResponse;
 import response.UserResponse;
 import utils.AccountHelper;
@@ -12,6 +26,12 @@ import utils.RequestHelper;
 import utils.ResponseHelper;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -27,8 +47,17 @@ public class PointApiTest {
     private final static String CRM_BASE_URL_MACAU = "https://dev.macau.crm.blockchain.thoughtworks.cn";
     private final static String POINT_BASE_URL_MANILA = "https://dev.manila.loyalty.blockchain.thoughtworks.cn";
 
+    private final static String CUSTOMER_PRIVATE_KEY = "53ae418dd7bcd31513f47ec6b816b3926508d2163939e241c38208246e4397f4";
+    private final static String MERCHANT_PRIVATE_KEY = "e9cc95e0bc6893cb195beafc7b3f43690fd402059418700be96de2084fa4f25b";
+    private final static String CONTRACT_ADDRESS = "0xF3F55ba7CFd40634b2F890856b8eDa598d5b84A5";
+    private final static String RPS_URL = "http://node1.quorum.cn.blockchain.thoughtworks.cn:80";
+    private final static String ROC_PRIVATE_KEY = "0b50f9b00fb6bde53c87aee17219646359b4a086e70b7e3e82ab39c44ec5cb10";
+    private final long GAS_LIMIT = 450000000L;
+
     private final static String TOKEN = "eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE1OTcxMzYxMjMsIm1lbWJlcnNoaXBJZCI6InNteTIwMDA1Iiwicm9sZSI6Ik1FUkNIQU5UIn0.TrafIzHrLdJX-DKj4YNsGQh0NelCmOnFHf3FfV5zdbAINm09fe9OM4zutINEWSUWLOBc99nXcqPyvHQMRK-VOZmhHBIBvb5p7X_ld7mDWRvwndIgnuM-UgybitNh5NRCt4Y4XfqPze8HkQhh-z8dkYMJqlJcEv6tb1lNiNJHcevuo63o6Fhi99pLUA7J3nKi29dONy-t_mAmnkjvTg-VLrrrzmNQXfT0yN7aQxrdKk2kdbwCKjVUGD5I_SG6--K6bDPcRFj-vFM8vG0LPz6HlHcr_j33zSn1L1Ih9zArEeOEPwAEGjS_i9gg5YeEAHh96jtbc9uVeOUSY-t4q4JbmQ";
-    public static final String ROC_MACAU_ADDRESS_DEV = "0x395E9294991086eDC9fce644197Ac244b30768F9";
+    private final static String ROC_MACAU_ADDRESS_DEV = "0x395E9294991086eDC9fce644197Ac244b30768F9";
+
+    private final Web3j web3j = this.quorum();
 
     @Test
     public void test_should_get_account_token_success() throws IOException {
@@ -184,5 +213,104 @@ public class PointApiTest {
     }
 
     //TODO: spend and redeem points signed data construction
+    @Test
+    void should_spend_points_success() throws IOException {
+        String customerAddress = "0x61e9b39dF53744277C430fa9fEA3c77FD2b55e5c";
+        String merchantAddress = "0x7D53836C2310128590D16B67730F3A425AE335B9";
+        TransactionCommand transactionCommand = TransactionCommand.builder()
+                .fromAddress(customerAddress)
+                .toAddress(merchantAddress)
+                .amount(BigDecimal.ONE)
+                .fromPublicKey("publicKey")
+                .signedTransactionRawData(getSpendSignedRawTransaction(merchantAddress, customerAddress, 1))
+                .build();
 
+        String transactionJson = RequestHelper.getJsonString(transactionCommand);
+
+        given()
+                .header("Content-Type", "application/json")
+                .auth()
+                .none()
+                .header("Authorization", TOKEN)
+                .body(transactionJson)
+                .when()
+                .post(POINT_BASE_URL_MACAU + "/points/spend")
+                .then()
+                .assertThat()
+                .statusCode(201);
+    }
+
+    private String getRewardSignedRawTransaction(String merchantAddress, String customerAddress, int points) throws IOException {
+
+        Credentials credential = Credentials.create("0b50f9b00fb6bde53c87aee17219646359b4a086e70b7e3e82ab39c44ec5cb10");
+
+        RawTransactionManager rawTransactionManager =
+                new RawTransactionManager(web3j, credential);
+
+        Function function = new Function(
+                "rewardPoints",
+                Arrays.asList(new org.web3j.abi.datatypes.Address(customerAddress),
+                        new org.web3j.abi.datatypes.Address(merchantAddress),
+                        new org.web3j.abi.datatypes.generated.Uint256(points),
+                        new org.web3j.abi.datatypes.generated
+                                .Uint256(Integer.parseInt(new SimpleDateFormat("yyyyMM").format(new Date())))),
+                Collections.emptyList());
+        String encode = FunctionEncoder.encode(function);
+
+        EthGetTransactionCount ethGetTransactionCount =
+                web3j.ethGetTransactionCount(credential.getAddress(), DefaultBlockParameterName.PENDING).send();
+
+        BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+
+        RawTransaction rawTransaction =
+                RawTransaction.createTransaction(nonce, BigInteger.ZERO, BigInteger.valueOf(GAS_LIMIT), CONTRACT_ADDRESS, encode);
+
+        return rawTransactionManager.sign(rawTransaction);
+    }
+
+    private String getSpendSignedRawTransaction(String merchantAddress, String customerAddress, int points) throws IOException {
+
+        Credentials credential = Credentials.create(CUSTOMER_PRIVATE_KEY);
+
+        RawTransactionManager rawTransactionManager =
+                new RawTransactionManager(web3j, credential);
+
+        Function function = new Function(
+                "spendPoints",
+                Arrays.asList(new org.web3j.abi.datatypes.Address(customerAddress),
+                        new org.web3j.abi.datatypes.Address(merchantAddress),
+                        new org.web3j.abi.datatypes.generated.Uint256(points),
+                        new org.web3j.abi.datatypes.generated
+                                .Uint256(Integer.parseInt(new SimpleDateFormat("yyyyMM").format(new Date())))),
+                Collections.emptyList());
+        String encode = FunctionEncoder.encode(function);
+
+        EthGetTransactionCount ethGetTransactionCount =
+                web3j.ethGetTransactionCount(credential.getAddress(), DefaultBlockParameterName.PENDING).send();
+
+        BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+
+        RawTransaction rawTransaction =
+                RawTransaction.createTransaction(nonce, BigInteger.ZERO, BigInteger.valueOf(GAS_LIMIT), CONTRACT_ADDRESS, encode);
+
+        return rawTransactionManager.sign(rawTransaction);
+    }
+
+
+    private Web3j quorum() {
+        String nodeEndpoint = RPS_URL;
+        Web3jService web3jService;
+
+        if (nodeEndpoint == null || nodeEndpoint.equals("")) {
+            web3jService = new HttpService();
+        } else if (nodeEndpoint.startsWith("http")) {
+            web3jService = new HttpService(nodeEndpoint);
+        } else if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
+            web3jService = new WindowsIpcService(nodeEndpoint);
+        } else {
+            web3jService = new UnixIpcService(nodeEndpoint);
+        }
+
+        return Web3j.build(web3jService, 1000L, Async.defaultExecutorService());
+    }
 }
