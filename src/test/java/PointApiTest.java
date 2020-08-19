@@ -240,6 +240,32 @@ public class PointApiTest {
                 .statusCode(201);
     }
 
+    @Test
+    void should_redeem_points_for_merchant_success() throws IOException {
+        String merchantAddress = "0x7D53836C2310128590D16B67730F3A425AE335B9";
+        TransactionCommand transactionCommand = TransactionCommand.builder()
+                .fromAddress(merchantAddress)
+                .toAddress(ROC_MACAU_ADDRESS_DEV)
+                .amount(BigDecimal.ONE)
+                .fromPublicKey("publicKey")
+                .signedTransactionRawData(getRedeemSignedRawTransaction(merchantAddress, 1))
+                .build();
+
+        String transactionJson = RequestHelper.getJsonString(transactionCommand);
+
+        given()
+                .header("Content-Type", "application/json")
+                .auth()
+                .none()
+                .header("Authorization", TOKEN)
+                .body(transactionJson)
+                .when()
+                .post(POINT_BASE_URL_MACAU + "/points/redemption")
+                .then()
+                .assertThat()
+                .statusCode(201);
+    }
+
     private String getRewardSignedRawTransaction(String merchantAddress, String customerAddress, int points) throws IOException {
 
         Credentials credential = Credentials.create("0b50f9b00fb6bde53c87aee17219646359b4a086e70b7e3e82ab39c44ec5cb10");
@@ -279,6 +305,34 @@ public class PointApiTest {
                 "spendPoints",
                 Arrays.asList(new org.web3j.abi.datatypes.Address(customerAddress),
                         new org.web3j.abi.datatypes.Address(merchantAddress),
+                        new org.web3j.abi.datatypes.generated.Uint256(points),
+                        new org.web3j.abi.datatypes.generated
+                                .Uint256(Integer.parseInt(new SimpleDateFormat("yyyyMM").format(new Date())))),
+                Collections.emptyList());
+        String encode = FunctionEncoder.encode(function);
+
+        EthGetTransactionCount ethGetTransactionCount =
+                web3j.ethGetTransactionCount(credential.getAddress(), DefaultBlockParameterName.PENDING).send();
+
+        BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+
+        RawTransaction rawTransaction =
+                RawTransaction.createTransaction(nonce, BigInteger.ZERO, BigInteger.valueOf(GAS_LIMIT), CONTRACT_ADDRESS, encode);
+
+        return rawTransactionManager.sign(rawTransaction);
+    }
+
+    private String getRedeemSignedRawTransaction(String merchantAddress, int points) throws IOException {
+
+        Credentials credential = Credentials.create(MERCHANT_PRIVATE_KEY);
+
+        RawTransactionManager rawTransactionManager =
+                new RawTransactionManager(web3j, credential);
+
+        Function function = new Function(
+                "redeemPointsForMerchant",
+                Arrays.asList(new org.web3j.abi.datatypes.Address(merchantAddress),
+                        new org.web3j.abi.datatypes.Address(ROC_MACAU_ADDRESS_DEV),
                         new org.web3j.abi.datatypes.generated.Uint256(points),
                         new org.web3j.abi.datatypes.generated
                                 .Uint256(Integer.parseInt(new SimpleDateFormat("yyyyMM").format(new Date())))),
