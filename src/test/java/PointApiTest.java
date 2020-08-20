@@ -30,11 +30,9 @@ import utils.ResponseHelper;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -53,7 +51,6 @@ public class PointApiTest {
     private final static String CUSTOMER_PRIVATE_KEY = "53ae418dd7bcd31513f47ec6b816b3926508d2163939e241c38208246e4397f4";
     private final static String MERCHANT_PRIVATE_KEY = "e9cc95e0bc6893cb195beafc7b3f43690fd402059418700be96de2084fa4f25b";
     private final static String CONTRACT_ADDRESS = "0x32862a1861cE3AABe043f47c672ee26b9244F613";
-    private final static String ADMIN_CONTRACT_ADDRESS = "0xed9d02e382b34818e88B88a309c7fe71E65f419d";
     private final static String RPS_URL = "http://node1.quorum.cn.blockchain.thoughtworks.cn:80";
     private final static String ROC_PRIVATE_KEY = "0b50f9b00fb6bde53c87aee17219646359b4a086e70b7e3e82ab39c44ec5cb10";
     private final long GAS_LIMIT = 450000000L;
@@ -147,6 +144,7 @@ public class PointApiTest {
                 .body("totalBalance", notNullValue());
     }
 
+    //test in another branch
     @Test
     void should_bind_customer_account_success() throws IOException {
 
@@ -273,7 +271,7 @@ public class PointApiTest {
                 .toAddress(ROC_MACAU_ADDRESS_DEV)
                 .amount(BigDecimal.ONE)
                 .fromPublicKey("publicKey")
-                .signedTransactionRawData(getRedeemSignedRawTransaction(merchantAddress, 1))
+                .signedTransactionRawData(getRedeemSignedRawTransaction(1))
                 .build();
 
         String transactionJson = RequestHelper.getJsonString(transactionCommand);
@@ -321,7 +319,7 @@ public class PointApiTest {
                     Collections.emptyList());
     }
 
-    private String getRedeemSignedRawTransaction(String merchantAddress, int points) throws IOException {
+    private String getRedeemSignedRawTransaction(int points) throws IOException {
 
         Credentials credential = Credentials.create(MERCHANT_PRIVATE_KEY);
 
