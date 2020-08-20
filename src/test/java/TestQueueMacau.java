@@ -14,13 +14,10 @@ import utils.SignedRawDataHelper;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
-import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@AllArgsConstructor
 public class TestQueueMacau {
     private final static String POINT_BASE_URL_MACAU = "https://dev.macau.loyalty.blockchain.thoughtworks.cn";
 
@@ -130,7 +127,10 @@ public class TestQueueMacau {
                 .assertThat()
                 .statusCode(201);
 
-        //TODO: verify merchant balance reduce and roc balance increase
+        //TODO: verify merchant balance reduce
+        BalanceResponse balanceAfterRedeem = queryBalances(token);
+        int redeemMerBalance = balanceAfterRedeem.getAccounts().get(1).getBalance();
+        assertEquals(redeemMerBalance, spendMerBalance - 10);
     }
 
     private BalanceResponse queryBalances(String token) throws IOException {
