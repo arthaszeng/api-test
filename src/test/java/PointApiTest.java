@@ -5,6 +5,7 @@ import command.TransactionCommand;
 import common.Role;
 import io.restassured.response.Response;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Function;
@@ -49,7 +50,8 @@ public class PointApiTest {
 
     private final static String CUSTOMER_PRIVATE_KEY = "53ae418dd7bcd31513f47ec6b816b3926508d2163939e241c38208246e4397f4";
     private final static String MERCHANT_PRIVATE_KEY = "e9cc95e0bc6893cb195beafc7b3f43690fd402059418700be96de2084fa4f25b";
-    private final static String CONTRACT_ADDRESS = "0xF3F55ba7CFd40634b2F890856b8eDa598d5b84A5";
+    private final static String CONTRACT_ADDRESS = "0x32862a1861cE3AABe043f47c672ee26b9244F613";
+    private final static String ADMIN_CONTRACT_ADDRESS = "0xed9d02e382b34818e88B88a309c7fe71E65f419d";
     private final static String RPS_URL = "http://node1.quorum.cn.blockchain.thoughtworks.cn:80";
     private final static String ROC_PRIVATE_KEY = "0b50f9b00fb6bde53c87aee17219646359b4a086e70b7e3e82ab39c44ec5cb10";
     private final long GAS_LIMIT = 450000000L;
@@ -222,7 +224,7 @@ public class PointApiTest {
                 .toAddress(merchantAddress)
                 .amount(BigDecimal.ONE)
                 .fromPublicKey("publicKey")
-                .signedTransactionRawData(getSpendSignedRawTransaction(merchantAddress, customerAddress, 1))
+                .signedTransactionRawData(getSpendSignedRawTransaction(merchantAddress, 1))
                 .build();
 
         String transactionJson = RequestHelper.getJsonString(transactionCommand);
@@ -273,14 +275,7 @@ public class PointApiTest {
         RawTransactionManager rawTransactionManager =
                 new RawTransactionManager(web3j, credential);
 
-        Function function = new Function(
-                "rewardPoints",
-                Arrays.asList(new org.web3j.abi.datatypes.Address(customerAddress),
-                        new org.web3j.abi.datatypes.Address(merchantAddress),
-                        new org.web3j.abi.datatypes.generated.Uint256(points),
-                        new org.web3j.abi.datatypes.generated
-                                .Uint256(Integer.parseInt(new SimpleDateFormat("yyyyMM").format(new Date())))),
-                Collections.emptyList());
+        Function function = getRewardFunction(merchantAddress, customerAddress, points);
         String encode = FunctionEncoder.encode(function);
 
         EthGetTransactionCount ethGetTransactionCount =
@@ -294,21 +289,26 @@ public class PointApiTest {
         return rawTransactionManager.sign(rawTransaction);
     }
 
-    private String getSpendSignedRawTransaction(String merchantAddress, String customerAddress, int points) throws IOException {
+    @NotNull
+    private Function getRewardFunction(String merchantAddress, String customerAddress, int points) {
+        return new Function(
+                    "rewardPoints",
+                    Arrays.asList(new org.web3j.abi.datatypes.Address(customerAddress),
+                            new org.web3j.abi.datatypes.Address(merchantAddress),
+                            new org.web3j.abi.datatypes.generated.Uint256(points),
+                            new org.web3j.abi.datatypes.generated
+                                    .Uint256(Integer.parseInt(new SimpleDateFormat("yyyyMM").format(new Date())))),
+                    Collections.emptyList());
+    }
+
+    private String getSpendSignedRawTransaction(String merchantAddress, int points) throws IOException {
 
         Credentials credential = Credentials.create(CUSTOMER_PRIVATE_KEY);
 
         RawTransactionManager rawTransactionManager =
                 new RawTransactionManager(web3j, credential);
 
-        Function function = new Function(
-                "spendPoints",
-                Arrays.asList(new org.web3j.abi.datatypes.Address(customerAddress),
-                        new org.web3j.abi.datatypes.Address(merchantAddress),
-                        new org.web3j.abi.datatypes.generated.Uint256(points),
-                        new org.web3j.abi.datatypes.generated
-                                .Uint256(Integer.parseInt(new SimpleDateFormat("yyyyMM").format(new Date())))),
-                Collections.emptyList());
+        Function function = getSpendFunction(merchantAddress, points);
         String encode = FunctionEncoder.encode(function);
 
         EthGetTransactionCount ethGetTransactionCount =
@@ -317,9 +317,18 @@ public class PointApiTest {
         BigInteger nonce = ethGetTransactionCount.getTransactionCount();
 
         RawTransaction rawTransaction =
-                RawTransaction.createTransaction(nonce, BigInteger.ZERO, BigInteger.valueOf(GAS_LIMIT), CONTRACT_ADDRESS, encode);
+                RawTransaction.createTransaction(nonce, BigInteger.ZERO, BigInteger.valueOf(GAS_LIMIT), ADMIN_CONTRACT_ADDRESS, encode);
 
         return rawTransactionManager.sign(rawTransaction);
+    }
+
+    @NotNull
+    private Function getSpendFunction(String merchantAddress, int points) {
+        return new Function(
+                    "spendPoints",
+                    Arrays.asList(new org.web3j.abi.datatypes.Address(merchantAddress),
+                            new org.web3j.abi.datatypes.generated.Uint256(points)),
+                    Collections.emptyList());
     }
 
     private String getRedeemSignedRawTransaction(String merchantAddress, int points) throws IOException {
@@ -329,14 +338,7 @@ public class PointApiTest {
         RawTransactionManager rawTransactionManager =
                 new RawTransactionManager(web3j, credential);
 
-        Function function = new Function(
-                "redeemPointsForMerchant",
-                Arrays.asList(new org.web3j.abi.datatypes.Address(merchantAddress),
-                        new org.web3j.abi.datatypes.Address(ROC_MACAU_ADDRESS_DEV),
-                        new org.web3j.abi.datatypes.generated.Uint256(points),
-                        new org.web3j.abi.datatypes.generated
-                                .Uint256(Integer.parseInt(new SimpleDateFormat("yyyyMM").format(new Date())))),
-                Collections.emptyList());
+        Function function = getRedeemForMerchantFunction(merchantAddress, points);
         String encode = FunctionEncoder.encode(function);
 
         EthGetTransactionCount ethGetTransactionCount =
@@ -348,6 +350,15 @@ public class PointApiTest {
                 RawTransaction.createTransaction(nonce, BigInteger.ZERO, BigInteger.valueOf(GAS_LIMIT), CONTRACT_ADDRESS, encode);
 
         return rawTransactionManager.sign(rawTransaction);
+    }
+
+    @NotNull
+    private Function getRedeemForMerchantFunction(String merchantAddress, int points) {
+        return new Function(
+                    "redeemPointsForMerchant",
+                    Arrays.asList(new org.web3j.abi.datatypes.Address(merchantAddress),
+                            new org.web3j.abi.datatypes.generated.Uint256(points)),
+                    Collections.emptyList());
     }
 
 
