@@ -14,7 +14,6 @@ import utils.SignedRawDataHelper;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
@@ -46,7 +45,6 @@ public class TestQueueMacau {
         TokenResponse tokenResponse = (TokenResponse) ResponseHelper.getResponseAsObject(response.asString(), TokenResponse.class);
         String token = tokenResponse.getToken();
 
-        //TODO: get original customer balance response
         //get original balance
         BalanceResponse initBalances = queryBalances(token);
         int initCusBalance = initBalances.getAccounts().get(0).getBalance();
@@ -73,9 +71,7 @@ public class TestQueueMacau {
                 .when()
                 .post(POINT_BASE_URL_MACAU + "/test/reward");
 
-        //TODO: verify customer balance increase
-        await().atLeast(5, TimeUnit.SECONDS);
-
+        //verify customer balance increase
         BalanceResponse balancesAfterReward = queryBalances(token);
         int rewardCusBalance = balancesAfterReward.getAccounts().get(0).getBalance();
         assertEquals(rewardCusBalance, initCusBalance + 10);
@@ -103,7 +99,12 @@ public class TestQueueMacau {
                 .assertThat()
                 .statusCode(201);
 
-        //TODO: verify customer balance reduce and merchant balance increase
+        //verify customer balance reduce and merchant balance increase
+        BalanceResponse balancesAfterSpend = queryBalances(token);
+        int spendCusBalance = balancesAfterSpend.getAccounts().get(0).getBalance();
+        int spendMerBalance = balancesAfterSpend.getAccounts().get(1).getBalance();
+        assertEquals(spendCusBalance, rewardCusBalance - 10);
+        assertEquals(spendMerBalance, initMerBalance + 10);
 
         //points redeem
         String merchantAddress = "0x7D53836C2310128590D16B67730F3A425AE335B9";
