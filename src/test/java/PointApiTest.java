@@ -222,9 +222,9 @@ public class PointApiTest {
         TransactionCommand transactionCommand = TransactionCommand.builder()
                 .fromAddress(customerAddress)
                 .toAddress(merchantAddress)
-                .amount(BigDecimal.ONE)
+                .amount(BigDecimal.valueOf(5))
                 .fromPublicKey("publicKey")
-                .signedTransactionRawData(getSpendSignedRawTransaction(merchantAddress, 1))
+                .signedTransactionRawData(getSpendSignedRawTransaction(merchantAddress, 5))
                 .build();
 
         String transactionJson = RequestHelper.getJsonString(transactionCommand);
@@ -317,7 +317,7 @@ public class PointApiTest {
         BigInteger nonce = ethGetTransactionCount.getTransactionCount();
 
         RawTransaction rawTransaction =
-                RawTransaction.createTransaction(nonce, BigInteger.ZERO, BigInteger.valueOf(GAS_LIMIT), ADMIN_CONTRACT_ADDRESS, encode);
+                RawTransaction.createTransaction(nonce, BigInteger.ZERO, BigInteger.valueOf(GAS_LIMIT), CONTRACT_ADDRESS, encode);
 
         return rawTransactionManager.sign(rawTransaction);
     }
@@ -338,7 +338,7 @@ public class PointApiTest {
         RawTransactionManager rawTransactionManager =
                 new RawTransactionManager(web3j, credential);
 
-        Function function = getRedeemForMerchantFunction(merchantAddress, points);
+        Function function = getRedeemForMerchantFunction(points);
         String encode = FunctionEncoder.encode(function);
 
         EthGetTransactionCount ethGetTransactionCount =
@@ -353,10 +353,10 @@ public class PointApiTest {
     }
 
     @NotNull
-    private Function getRedeemForMerchantFunction(String merchantAddress, int points) {
+    private Function getRedeemForMerchantFunction(int points) {
         return new Function(
                     "redeemPointsForMerchant",
-                    Arrays.asList(new org.web3j.abi.datatypes.Address(merchantAddress),
+                    Arrays.asList(new org.web3j.abi.datatypes.Address(ROC_MACAU_ADDRESS_DEV),
                             new org.web3j.abi.datatypes.generated.Uint256(points)),
                     Collections.emptyList());
     }
