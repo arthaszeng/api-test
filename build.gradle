@@ -13,7 +13,8 @@ repositories {
 
 dependencies {
     compile 'org.codehaus.groovy:groovy-all:3.0.5'
-    compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.11.2'
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.2'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '2.0.0-alpha1'
 
     implementation("org.web3j:core:5.0.0") {

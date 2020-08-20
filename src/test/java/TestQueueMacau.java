@@ -5,6 +5,7 @@ import common.Role;
 import io.restassured.response.Response;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
+import response.BalanceResponse;
 import response.TokenResponse;
 import utils.RequestHelper;
 import utils.ResponseHelper;
@@ -13,8 +14,12 @@ import utils.SignedRawDataHelper;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @AllArgsConstructor
 public class TestQueueMacau {
@@ -41,15 +46,11 @@ public class TestQueueMacau {
         TokenResponse tokenResponse = (TokenResponse) ResponseHelper.getResponseAsObject(response.asString(), TokenResponse.class);
         String token = tokenResponse.getToken();
 
-        //get customer original balance
-        Response customerBalanceOrg = given()
-                .auth()
-                .none()
-                .header("Authorization", token)
-                .param("addresses", CUSTOMER_ADDRESS)
-                .when()
-                .get(POINT_BASE_URL_MACAU + "/points");
         //TODO: get original customer balance response
+        //get original balance
+        BalanceResponse initBalances = queryBalances(token);
+        int initCusBalance = initBalances.getAccounts().get(0).getBalance();
+        int initMerBalance = initBalances.getAccounts().get(1).getBalance();
 
         //points reward
         OrderPaidEvent orderPaidEvent = OrderPaidEvent.builder()
@@ -73,6 +74,11 @@ public class TestQueueMacau {
                 .post(POINT_BASE_URL_MACAU + "/test/reward");
 
         //TODO: verify customer balance increase
+        await().atLeast(5, TimeUnit.SECONDS);
+
+        BalanceResponse balancesAfterReward = queryBalances(token);
+        int rewardCusBalance = balancesAfterReward.getAccounts().get(0).getBalance();
+        assertEquals(rewardCusBalance, initCusBalance + 10);
 
         //points spend
         TransactionCommand spendCommand = TransactionCommand.builder()
@@ -124,5 +130,17 @@ public class TestQueueMacau {
                 .statusCode(201);
 
         //TODO: verify merchant balance reduce and roc balance increase
+    }
+
+    private BalanceResponse queryBalances(String token) throws IOException {
+        Response initResponse = given()
+                .auth()
+                .none()
+                .header("Authorization", token)
+                .param("addresses", CUSTOMER_ADDRESS)
+                .param("addresses", MERCHANT_ADDRESS)
+                .when()
+                .get(POINT_BASE_URL_MACAU + "/points");
+        return (BalanceResponse) ResponseHelper.getResponseAsObject(initResponse.asString(), BalanceResponse.class);
     }
 }
