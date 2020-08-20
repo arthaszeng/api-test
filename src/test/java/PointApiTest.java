@@ -1,6 +1,7 @@
 import command.BindAccountCommand;
 import command.CreateUserCommand;
 import command.GetTokenCommand;
+import command.OrderPaidEvent;
 import command.TransactionCommand;
 import common.Role;
 import io.restassured.response.Response;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -214,17 +216,38 @@ public class PointApiTest {
                 .body("balance", equalTo(100));
     }
 
-    //TODO: spend and redeem points signed data construction
+    //TODO: test reward points
     @Test
     void should_spend_points_success() throws IOException {
         String customerAddress = "0x61e9b39dF53744277C430fa9fEA3c77FD2b55e5c";
         String merchantAddress = "0x7D53836C2310128590D16B67730F3A425AE335B9";
+
+        OrderPaidEvent orderPaidEvent = OrderPaidEvent.builder()
+                .customerMembershipId("testCUS1")
+                .merchantMembershipId("testMER1")
+                .orderId("1")
+                .createdAt(Instant.now())
+                .payTime(Instant.now())
+                .point(BigDecimal.TEN)
+                .build();
+
+        String orderPaidJson = RequestHelper.getJsonString(orderPaidEvent);
+
+        given()
+                .header("Content-Type", "application/json")
+                .auth()
+                .none()
+                .header("Authorization", TOKEN)
+                .body(orderPaidJson)
+                .when()
+                .post(POINT_BASE_URL_MACAU + "/test/reward");
+
         TransactionCommand transactionCommand = TransactionCommand.builder()
                 .fromAddress(customerAddress)
                 .toAddress(merchantAddress)
-                .amount(BigDecimal.valueOf(5))
+                .amount(BigDecimal.valueOf(10))
                 .fromPublicKey("publicKey")
-                .signedTransactionRawData(getSpendSignedRawTransaction(merchantAddress, 5))
+                .signedTransactionRawData(getSpendSignedRawTransaction(merchantAddress, 10))
                 .build();
 
         String transactionJson = RequestHelper.getJsonString(transactionCommand);
@@ -266,39 +289,6 @@ public class PointApiTest {
                 .then()
                 .assertThat()
                 .statusCode(201);
-    }
-
-    private String getRewardSignedRawTransaction(String merchantAddress, String customerAddress, int points) throws IOException {
-
-        Credentials credential = Credentials.create("0b50f9b00fb6bde53c87aee17219646359b4a086e70b7e3e82ab39c44ec5cb10");
-
-        RawTransactionManager rawTransactionManager =
-                new RawTransactionManager(web3j, credential);
-
-        Function function = getRewardFunction(merchantAddress, customerAddress, points);
-        String encode = FunctionEncoder.encode(function);
-
-        EthGetTransactionCount ethGetTransactionCount =
-                web3j.ethGetTransactionCount(credential.getAddress(), DefaultBlockParameterName.PENDING).send();
-
-        BigInteger nonce = ethGetTransactionCount.getTransactionCount();
-
-        RawTransaction rawTransaction =
-                RawTransaction.createTransaction(nonce, BigInteger.ZERO, BigInteger.valueOf(GAS_LIMIT), CONTRACT_ADDRESS, encode);
-
-        return rawTransactionManager.sign(rawTransaction);
-    }
-
-    @NotNull
-    private Function getRewardFunction(String merchantAddress, String customerAddress, int points) {
-        return new Function(
-                    "rewardPoints",
-                    Arrays.asList(new org.web3j.abi.datatypes.Address(customerAddress),
-                            new org.web3j.abi.datatypes.Address(merchantAddress),
-                            new org.web3j.abi.datatypes.generated.Uint256(points),
-                            new org.web3j.abi.datatypes.generated
-                                    .Uint256(Integer.parseInt(new SimpleDateFormat("yyyyMM").format(new Date())))),
-                    Collections.emptyList());
     }
 
     private String getSpendSignedRawTransaction(String merchantAddress, int points) throws IOException {
