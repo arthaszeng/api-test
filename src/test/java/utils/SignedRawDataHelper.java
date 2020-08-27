@@ -20,13 +20,10 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Objects;
 
 public class SignedRawDataHelper {
-    private final static String RPS_URL = "http://node1.quorum.cn.blockchain.thoughtworks.cn:80";
-    private final static String CUSTOMER_PRIVATE_KEY = "53ae418dd7bcd31513f47ec6b816b3926508d2163939e241c38208246e4397f4";
-    private final static String MERCHANT_PRIVATE_KEY = "e9cc95e0bc6893cb195beafc7b3f43690fd402059418700be96de2084fa4f25b";
-    private final static String CONTRACT_ADDRESS = "0x32862a1861cE3AABe043f47c672ee26b9244F613";
+    private final static String RPC_URL = "http://node1.quorum.cn.blockchain.thoughtworks.cn:80";
+    private final static String CONTRACT_ADDRESS = "0x27c8573C910c5dbB05E68f4A9cEe132C7d4Aad60";
     private final static String ROC_MACAU_ADDRESS_DEV = "0x395E9294991086eDC9fce644197Ac244b30768F9";
     private final static String ROC_MANILA_ADDRESS_PROD = "0x5063D554cED7F296315aA49f8d9a02F466696De1";
 
@@ -35,7 +32,7 @@ public class SignedRawDataHelper {
     private final static Web3j web3j = quorum();
 
     private static Web3j quorum() {
-        String nodeEndpoint = RPS_URL;
+        String nodeEndpoint = RPC_URL;
         Web3jService web3jService;
 
         if (nodeEndpoint == null || nodeEndpoint.equals("")) {
@@ -51,9 +48,9 @@ public class SignedRawDataHelper {
         return Web3j.build(web3jService, 1000L, Async.defaultExecutorService());
     }
 
-    public static String getSpendSignedRawTransaction(String merchantAddress, int points) throws IOException {
+    public static String getSpendSignedRawTransaction(String merchantAddress, int points, String customerPrivateKey) throws IOException {
 
-        Credentials credential = Credentials.create(CUSTOMER_PRIVATE_KEY);
+        Credentials credential = Credentials.create(customerPrivateKey);
 
         RawTransactionManager rawTransactionManager =
                 new RawTransactionManager(web3j, credential);
@@ -81,9 +78,9 @@ public class SignedRawDataHelper {
                 Collections.emptyList());
     }
 
-    public static String getRedeemSignedRawTransaction(int points, Region region) throws IOException {
+    public static String getRedeemSignedRawTransaction(int points, Region region, String merchantPrivateKey) throws IOException {
 
-        Credentials credential = Credentials.create(MERCHANT_PRIVATE_KEY);
+        Credentials credential = Credentials.create(merchantPrivateKey);
 
         RawTransactionManager rawTransactionManager =
                 new RawTransactionManager(web3j, credential);

@@ -21,11 +21,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class TestQueueMacau {
     private final static String POINT_BASE_URL_MACAU = "https://dev.macau.loyalty.blockchain.thoughtworks.cn";
 
-    private final String CUSTOMER_ROOT_KEY = "mockRootKeyCUS";
-    private final String MERCHANT_ROOT_KEY = "mockRootKeyCUS";
-    private final String CUSTOMER_ADDRESS = "0x61e9b39dF53744277C430fa9fEA3c77FD2b55e5c";
-    private final String MERCHANT_ADDRESS = "0x7D53836C2310128590D16B67730F3A425AE335B9";
     private final String ROC_MACAU_ADDRESS_DEV = "0x395E9294991086eDC9fce644197Ac244b30768F9";
+
+    private final String CUSTOMER_ROOT_KEY = "mockRootKeyCUS1";
+    private final String CUSTOMER_ADDRESS = "0x88E463f33B905354dAc5360Fbf0f32Ac2861206E";
+    private final String CUSTOMER_PRIVATE_KEY = "1f2363918802c46a89a9cbbb5c730ebc5a3a368e11267fd2ca603974ec9cfd19";
+
+    private final String MERCHANT_ADDRESS = "0x30D757348D75E4F5Ae3ADa9Fe4702a0b7ea1944D";
+    private final String MERCHANT_PRIVATE_KEY = "9dc09e2426eadaba114d3904a5e7509af8df7c960c8b694152b53a6636cad051";
 
 
     @Test
@@ -79,7 +82,7 @@ public class TestQueueMacau {
                 .toAddress(MERCHANT_ADDRESS)
                 .amount(BigDecimal.valueOf(10))
                 .fromPublicKey("publicKey")
-                .signedTransactionRawData(SignedRawDataHelper.getSpendSignedRawTransaction(MERCHANT_ADDRESS, 10))
+                .signedTransactionRawData(SignedRawDataHelper.getSpendSignedRawTransaction(MERCHANT_ADDRESS, 10, CUSTOMER_PRIVATE_KEY))
                 .build();
 
         String spendJson = RequestHelper.getJsonString(spendCommand);
@@ -110,7 +113,7 @@ public class TestQueueMacau {
                 .toAddress(ROC_MACAU_ADDRESS_DEV)
                 .amount(BigDecimal.TEN)
                 .fromPublicKey("publicKey")
-                .signedTransactionRawData(SignedRawDataHelper.getRedeemSignedRawTransaction(10, Region.MACAU))
+                .signedTransactionRawData(SignedRawDataHelper.getRedeemSignedRawTransaction(10, Region.MACAU, MERCHANT_PRIVATE_KEY))
                 .build();
 
         String redeemJson = RequestHelper.getJsonString(redeemCommand);

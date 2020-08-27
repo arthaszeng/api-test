@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class PointApiTest {
     private final static String POINT_BASE_URL_MACAU = "https://dev.macau.loyalty.blockchain.thoughtworks.cn";
     private final static String CRM_BASE_URL_MACAU = "https://dev.macau.crm.blockchain.thoughtworks.cn";
-    private final static String POINT_BASE_URL_MANILA = "https://dev.manila.loyalty.blockchain.thoughtworks.cn";
 
     private final static String ROC_PRIVATE_KEY = "0b50f9b00fb6bde53c87aee17219646359b4a086e70b7e3e82ab39c44ec5cb10";
 
@@ -227,7 +226,7 @@ public class PointApiTest {
                 .toAddress(merchantAddress)
                 .amount(BigDecimal.valueOf(10))
                 .fromPublicKey("publicKey")
-                .signedTransactionRawData(SignedRawDataHelper.getSpendSignedRawTransaction(merchantAddress, 10))
+                .signedTransactionRawData(SignedRawDataHelper.getSpendSignedRawTransaction(merchantAddress, 10, "0x61e9b39dF53744277C430fa9fEA3c77FD2b55e5c"))
                 .build();
 
         String transactionJson = RequestHelper.getJsonString(transactionCommand);
@@ -253,7 +252,7 @@ public class PointApiTest {
                 .toAddress(ROC_MACAU_ADDRESS_DEV)
                 .amount(BigDecimal.ONE)
                 .fromPublicKey("publicKey")
-                .signedTransactionRawData(SignedRawDataHelper.getRedeemSignedRawTransaction(1, Region.MACAU))
+                .signedTransactionRawData(SignedRawDataHelper.getRedeemSignedRawTransaction(1, Region.MACAU, "0x7D53836C2310128590D16B67730F3A425AE335B9"))
                 .build();
 
         String transactionJson = RequestHelper.getJsonString(transactionCommand);
