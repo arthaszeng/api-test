@@ -1,18 +1,12 @@
-import command.BindAccountCommand;
-import command.CreateUserCommand;
 import command.GetTokenCommand;
 import command.OrderPaidEvent;
 import command.TransactionCommand;
 import common.Region;
 import common.Role;
 import io.restassured.response.Response;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 import response.BalanceResponse;
 import response.TokenResponse;
-import response.UserResponse;
-import utils.AccountHelper;
 import utils.RequestHelper;
 import utils.ResponseHelper;
 import utils.SignedRawDataHelper;
@@ -20,13 +14,9 @@ import utils.SignedRawDataHelper;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
-import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class TestQueueManila {
     private final static String POINT_BASE_URL_PROD_MANILA = "https://manila.loyalty.blockchain.thoughtworks.cn";
