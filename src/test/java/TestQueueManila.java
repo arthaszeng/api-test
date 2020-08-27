@@ -106,9 +106,8 @@ public class TestQueueManila {
         assertEquals(spendMerBalance, initMerBalance + 10);
 
         //points redeem
-        String merchantAddress = "0x7D53836C2310128590D16B67730F3A425AE335B9";
         TransactionCommand redeemCommand = TransactionCommand.builder()
-                .fromAddress(merchantAddress)
+                .fromAddress(MERCHANT_ADDRESS)
                 .toAddress(ROC_MANILA_ADDRESS_PROD)
                 .amount(BigDecimal.TEN)
                 .fromPublicKey("publicKey")

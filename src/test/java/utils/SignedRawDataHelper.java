@@ -24,7 +24,7 @@ import java.util.Collections;
 public class SignedRawDataHelper {
     private final static String RPC_URL = "http://node1.quorum.cn.blockchain.thoughtworks.cn:80";
     private final static String CONTRACT_ADDRESS = "0x27c8573C910c5dbB05E68f4A9cEe132C7d4Aad60";
-    private final static String ROC_MACAU_ADDRESS_DEV = "0x395E9294991086eDC9fce644197Ac244b30768F9";
+    private final static String ROC_MACAU_ADDRESS_PROD = "0x2259189DEDaceFd6cF3FB7F04445e77684564f2f";
     private final static String ROC_MANILA_ADDRESS_PROD = "0x5063D554cED7F296315aA49f8d9a02F466696De1";
 
     private final static long GAS_LIMIT = 450000000L;
@@ -104,7 +104,7 @@ public class SignedRawDataHelper {
         if (region.equals(Region.MACAU)) {
             return new Function(
                     "redeemPointsForMerchant",
-                    Arrays.asList(new org.web3j.abi.datatypes.Address(ROC_MACAU_ADDRESS_DEV),
+                    Arrays.asList(new org.web3j.abi.datatypes.Address(ROC_MACAU_ADDRESS_PROD),
                             new org.web3j.abi.datatypes.generated.Uint256(points)),
                     Collections.emptyList());
         } else {

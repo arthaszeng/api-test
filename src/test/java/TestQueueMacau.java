@@ -19,9 +19,9 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestQueueMacau {
-    private final static String POINT_BASE_URL_MACAU = "https://dev.macau.loyalty.blockchain.thoughtworks.cn";
+    private final static String POINT_BASE_URL_PROD_MACAU = "https://macau.loyalty.blockchain.thoughtworks.cn";
 
-    private final String ROC_MACAU_ADDRESS_DEV = "0x395E9294991086eDC9fce644197Ac244b30768F9";
+    private final String ROC_MACAU_ADDRESS_PROD = "0x2259189DEDaceFd6cF3FB7F04445e77684564f2f";
 
     private final String CUSTOMER_ROOT_KEY = "mockRootKeyCUS1";
     private final String CUSTOMER_ADDRESS = "0x88E463f33B905354dAc5360Fbf0f32Ac2861206E";
@@ -40,7 +40,7 @@ public class TestQueueMacau {
                 .header("Content-Type", "application/json")
                 .body(getTokenJson)
                 .when()
-                .post(POINT_BASE_URL_MACAU + "/accounts/token");
+                .post(POINT_BASE_URL_PROD_MACAU + "/accounts/token");
 
         TokenResponse tokenResponse = (TokenResponse) ResponseHelper.getResponseAsObject(response.asString(), TokenResponse.class);
         String token = tokenResponse.getToken();
@@ -69,7 +69,7 @@ public class TestQueueMacau {
                 .header("Authorization", token)
                 .body(orderPaidJson)
                 .when()
-                .post(POINT_BASE_URL_MACAU + "/test/reward");
+                .post(POINT_BASE_URL_PROD_MACAU + "/test/reward");
 
         //verify customer balance increase
         BalanceResponse balancesAfterReward = queryBalances(token);
@@ -94,7 +94,7 @@ public class TestQueueMacau {
                 .header("Authorization", token)
                 .body(spendJson)
                 .when()
-                .post(POINT_BASE_URL_MACAU + "/points/spend")
+                .post(POINT_BASE_URL_PROD_MACAU + "/points/spend")
                 .then()
                 .assertThat()
                 .statusCode(201);
@@ -107,10 +107,9 @@ public class TestQueueMacau {
         assertEquals(spendMerBalance, initMerBalance + 10);
 
         //points redeem
-        String merchantAddress = "0x7D53836C2310128590D16B67730F3A425AE335B9";
         TransactionCommand redeemCommand = TransactionCommand.builder()
-                .fromAddress(merchantAddress)
-                .toAddress(ROC_MACAU_ADDRESS_DEV)
+                .fromAddress(MERCHANT_ADDRESS)
+                .toAddress(ROC_MACAU_ADDRESS_PROD)
                 .amount(BigDecimal.TEN)
                 .fromPublicKey("publicKey")
                 .signedTransactionRawData(SignedRawDataHelper.getRedeemSignedRawTransaction(10, Region.MACAU, MERCHANT_PRIVATE_KEY))
@@ -125,7 +124,7 @@ public class TestQueueMacau {
                 .header("Authorization", token)
                 .body(redeemJson)
                 .when()
-                .post(POINT_BASE_URL_MACAU + "/points/redemption")
+                .post(POINT_BASE_URL_PROD_MACAU + "/points/redemption")
                 .then()
                 .assertThat()
                 .statusCode(201);
@@ -144,7 +143,7 @@ public class TestQueueMacau {
                 .param("addresses", CUSTOMER_ADDRESS)
                 .param("addresses", MERCHANT_ADDRESS)
                 .when()
-                .get(POINT_BASE_URL_MACAU + "/points");
+                .get(POINT_BASE_URL_PROD_MACAU + "/points");
         return (BalanceResponse) ResponseHelper.getResponseAsObject(initResponse.asString(), BalanceResponse.class);
     }
 }
