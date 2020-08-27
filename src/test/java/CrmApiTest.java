@@ -1,9 +1,11 @@
 
+import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
+@Ignore
 public class CrmApiTest {
     private final static String CRM_BASE_URL_MACAU = "https://dev.macau.crm.blockchain.thoughtworks.cn";
 

@@ -3,9 +3,11 @@ import command.CreateUserCommand;
 import command.GetTokenCommand;
 import command.OrderPaidEvent;
 import command.TransactionCommand;
+import common.Region;
 import common.Role;
 import io.restassured.response.Response;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 import response.TokenResponse;
 import response.UserResponse;
@@ -27,6 +29,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@Ignore
 public class PointApiTest {
     private final static String POINT_BASE_URL_MACAU = "https://dev.macau.loyalty.blockchain.thoughtworks.cn";
     private final static String CRM_BASE_URL_MACAU = "https://dev.macau.crm.blockchain.thoughtworks.cn";
@@ -250,7 +253,7 @@ public class PointApiTest {
                 .toAddress(ROC_MACAU_ADDRESS_DEV)
                 .amount(BigDecimal.ONE)
                 .fromPublicKey("publicKey")
-                .signedTransactionRawData(SignedRawDataHelper.getRedeemSignedRawTransaction(1))
+                .signedTransactionRawData(SignedRawDataHelper.getRedeemSignedRawTransaction(1, Region.MACAU))
                 .build();
 
         String transactionJson = RequestHelper.getJsonString(transactionCommand);

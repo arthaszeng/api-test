@@ -1,9 +1,9 @@
 import command.GetTokenCommand;
 import command.OrderPaidEvent;
 import command.TransactionCommand;
+import common.Region;
 import common.Role;
 import io.restassured.response.Response;
-import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 import response.BalanceResponse;
 import response.TokenResponse;
@@ -110,7 +110,7 @@ public class TestQueueMacau {
                 .toAddress(ROC_MACAU_ADDRESS_DEV)
                 .amount(BigDecimal.TEN)
                 .fromPublicKey("publicKey")
-                .signedTransactionRawData(SignedRawDataHelper.getRedeemSignedRawTransaction(10))
+                .signedTransactionRawData(SignedRawDataHelper.getRedeemSignedRawTransaction(10, Region.MACAU))
                 .build();
 
         String redeemJson = RequestHelper.getJsonString(redeemCommand);
