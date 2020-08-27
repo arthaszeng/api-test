@@ -107,16 +107,13 @@ public class SignedRawDataHelper {
                     Arrays.asList(new org.web3j.abi.datatypes.Address(ROC_MACAU_ADDRESS_DEV),
                             new org.web3j.abi.datatypes.generated.Uint256(points)),
                     Collections.emptyList());
-        }
-
-        if (region.equals(Region.MANILA)) {
+        } else {
             return new Function(
                     "redeemPointsForMerchant",
                     Arrays.asList(new org.web3j.abi.datatypes.Address(ROC_MANILA_ADDRESS_PROD),
                             new org.web3j.abi.datatypes.generated.Uint256(points)),
                     Collections.emptyList());
         }
-        return null;
-    }
 
+    }
 }

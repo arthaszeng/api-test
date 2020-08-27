@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestQueueManila {
     private final static String POINT_BASE_URL_PROD_MANILA = "https://manila.loyalty.blockchain.thoughtworks.cn";
-    private final static String CRM_BASE_URL_PROD_MANILA = "https://manila.crm.blockchain.thoughtworks.cn";
 
     private final String CUSTOMER_ROOT_KEY = "mockRootKeyCUS1";
     private final String CUSTOMER_ADDRESS = "0xad89AE26a8026B14F916FFEa7D9923d4d014Eb0f";
