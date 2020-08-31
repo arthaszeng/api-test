@@ -37,16 +37,7 @@ public class TestQueueManila {
     @Test
     void user_journey_test_queue() throws IOException {
         //get token
-        GetTokenCommand tokenCommand = GetTokenCommand.builder().role(Role.CUSTOMER.name()).rootKey(CUSTOMER_ROOT_KEY).build();
-        String getTokenJson = RequestHelper.getJsonString(tokenCommand);
-        Response response = given()
-                .header("Content-Type", "application/json")
-                .body(getTokenJson)
-                .when()
-                .post(POINT_BASE_URL_PROD_MANILA + "/accounts/token");
-
-        TokenResponse tokenResponse = (TokenResponse) ResponseHelper.getResponseAsObject(response.asString(), TokenResponse.class);
-        String token = tokenResponse.getToken();
+        String token = getToken();
 
         //get original balance
         BalanceResponse initBalances = queryBalances(token);
@@ -151,9 +142,36 @@ public class TestQueueManila {
                 .body("[0].type", equalTo("POINTS_REDEEM"));
 
         //TODO: roc redeem
-
-        //TODO: expired points
     }
+
+    @Test
+    void should_get_expired_points_success() throws IOException {
+        given()
+                .auth()
+                .none()
+                .header("Authorization", getToken())
+                .param("start", "201808")
+                .param("end", "201808")
+                .when()
+                .get(POINT_BASE_URL_PROD_MANILA + String.format("/points/%s/expiration", CUSTOMER_ADDRESS))
+                .then()
+                .statusCode(200)
+                .body("balance", equalTo(100));
+    }
+
+    private String getToken() throws IOException {
+        GetTokenCommand tokenCommand = GetTokenCommand.builder().role(Role.CUSTOMER.name()).rootKey(CUSTOMER_ROOT_KEY).build();
+        String getTokenJson = RequestHelper.getJsonString(tokenCommand);
+        Response response = given()
+                .header("Content-Type", "application/json")
+                .body(getTokenJson)
+                .when()
+                .post(POINT_BASE_URL_PROD_MANILA + "/accounts/token");
+
+        TokenResponse tokenResponse = (TokenResponse) ResponseHelper.getResponseAsObject(response.asString(), TokenResponse.class);
+        return tokenResponse.getToken();
+    }
+
 
     private BalanceResponse queryBalances(String token) throws IOException {
         Response initResponse = given()
