@@ -25,7 +25,6 @@ public class ReportApiTest {
                 .body("income", notNullValue());
     }
 
-    //TODO: test method - can't assert accurate result value - test before and after?
     @Test
     void should_query_allocated_points_success() {
 

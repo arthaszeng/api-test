@@ -1,8 +1,10 @@
+import com.google.common.collect.ImmutableList;
 import command.GetTokenCommand;
 import command.OrderPaidEvent;
 import command.TransactionCommand;
 import common.Region;
 import common.Role;
+import common.TransactionHistoryType;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 import response.BalanceResponse;
@@ -16,10 +18,12 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestQueueManila {
     private final static String POINT_BASE_URL_PROD_MANILA = "https://manila.loyalty.blockchain.thoughtworks.cn";
+    private final static String REPORT_BASE_URL_PROD_MANILA = "https://manila.report.blockchain.thoughtworks.cn";
 
     private final String CUSTOMER_ROOT_KEY = "mockRootKeyCUS1";
     private final String CUSTOMER_ADDRESS = "0xad89AE26a8026B14F916FFEa7D9923d4d014Eb0f";
@@ -128,10 +132,27 @@ public class TestQueueManila {
                 .assertThat()
                 .statusCode(201);
 
-        //TODO: verify merchant balance reduce
         BalanceResponse balanceAfterRedeem = queryBalances(token);
         int redeemMerBalance = balanceAfterRedeem.getAccounts().get(1).getBalance();
         assertEquals(redeemMerBalance, spendMerBalance - 10);
+
+        //TODO: view merchant redeem roc history
+        given()
+                .param("address", ROC_MANILA_ADDRESS_PROD)
+                .param("page", 1)
+                .param("size", 10)
+                .param("transactionTypes", ImmutableList.of(TransactionHistoryType.ALL))
+                .when()
+                .post(REPORT_BASE_URL_PROD_MANILA + "/reports/roc/transactions")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .body("[0].amount", equalTo(-10))
+                .body("[0].type", equalTo("POINTS_REDEEM"));
+
+        //TODO: roc redeem
+
+        //TODO: expired points
     }
 
     private BalanceResponse queryBalances(String token) throws IOException {
