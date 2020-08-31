@@ -123,23 +123,25 @@ public class TestQueueManila {
                 .assertThat()
                 .statusCode(201);
 
+        //validate merchant points reduce
         BalanceResponse balanceAfterRedeem = queryBalances(token);
         int redeemMerBalance = balanceAfterRedeem.getAccounts().get(1).getBalance();
         assertEquals(redeemMerBalance, spendMerBalance - 10);
 
-        //TODO: view merchant redeem roc history
+        //validate first roc transaction history
         given()
                 .param("address", ROC_MANILA_ADDRESS_PROD)
                 .param("page", 1)
                 .param("size", 10)
                 .param("transactionTypes", ImmutableList.of(TransactionHistoryType.ALL))
                 .when()
-                .post(REPORT_BASE_URL_PROD_MANILA + "/reports/roc/transactions")
+                .get(REPORT_BASE_URL_PROD_MANILA + "/reports/roc/transactions")
                 .then()
                 .assertThat()
                 .statusCode(200)
-                .body("[0].amount", equalTo(-10))
-                .body("[0].type", equalTo("POINTS_REDEEM"));
+                .body("data[0].amount", equalTo(10))
+                .body("data[0].type", equalTo("POINTS_REDEEM"))
+                .body("data[0].address", equalTo(MERCHANT_ADDRESS.toLowerCase()));
 
         //TODO: roc redeem
     }
